@@ -11,8 +11,9 @@ import os
 # --------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-v-dd=&4^sw4)-q@*vz!9q%$+4%xlm$&d*jfp7ss=z^*6q-sekq'
-DEBUG = True
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
 ALLOWED_HOSTS = ["*"]
 
 # --------------------------------------------
@@ -88,14 +89,17 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 # ------------------------------
 # 🗄 DATABASE (Aiven MySQL)
 # ------------------------------
+# ------------------------------
+# DATABASE — AIVEN MYSQL
+# ------------------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("DB_NAME", "defaultdb"),
-        'USER': os.getenv("DB_USER", "avnadmin"),
-        'PASSWORD': os.getenv("DB_PASSWORD", "AVNS_xDKxhV3o-co_QS2pL7Z"),
-        'HOST': os.getenv("DB_HOST", "mysql-2e42a18a-yashdhawale17-a906.g.aivencloud.com"),
-        'PORT': os.getenv("DB_PORT", "10787"),
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT"),
         'OPTIONS': {
             "ssl": {
                 "ca": "/etc/secrets/ca.pem"
@@ -103,6 +107,7 @@ DATABASES = {
         }
     }
 }
+
 
 # --------------------------------------------
 # PASSWORD VALIDATION
@@ -136,11 +141,11 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 # EMAIL CONFIG
 # --------------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'yashdhawale17@gmail.com'
-EMAIL_HOST_PASSWORD = 'aboc xmav bhvp gosb'
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 # --------------------------------------------
 # DJANGO REST FRAMEWORK
@@ -170,5 +175,5 @@ CORS_ALLOW_CREDENTIALS = True  # ✅ Required for cookies/sessions
 
 
 # Razorpay Settings
-RAZORPAY_KEY_ID = "rzp_test_Rep4R92qy2KX4H"      
-RAZORPAY_KEY_SECRET = "mbr1dDYYKILEbyo6j8NQijFC"
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
