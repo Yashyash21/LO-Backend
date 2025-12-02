@@ -76,14 +76,31 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # --------------------------------------------
 # DATABASE
 # --------------------------------------------
+import os
+
+# ------------------------------
+# 🔐 SECURITY
+# ------------------------------
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-secret-key")
+
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
+# ------------------------------
+# 🗄 DATABASE (Aiven MySQL)
+# ------------------------------
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "lo_db",
-        "USER": "root",
-        "PASSWORD": "yashyash21",
-        "HOST": "localhost",
-        "PORT": "3306",
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("DB_NAME", "defaultdb"),
+        'USER': os.getenv("DB_USER", "avnadmin"),
+        'PASSWORD': os.getenv("DB_PASSWORD", "AVNS_xDKxhV3o-co_QS2pL7Z"),
+        'HOST': os.getenv("DB_HOST", "mysql-2e42a18a-yashdhawale17-a906.g.aivencloud.com"),
+        'PORT': os.getenv("DB_PORT", "10787"),
+        'OPTIONS': {
+            "ssl": {
+                "ca": "/etc/secrets/ca.pem"
+            }
+        }
     }
 }
 
