@@ -183,8 +183,6 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
-
-
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 
@@ -195,11 +193,18 @@ def create_admin(request):
     password = request.GET.get("password")
 
     if not email or not password:
-        return JsonResponse({"error": "Provide email & password in URL"}, status=400)
+        return JsonResponse({"error": "Provide email & password"}, status=400)
 
     if User.objects.filter(email=email).exists():
         return JsonResponse({"message": "Admin already exists"})
 
-    User.objects.create_superuser(email=email, password=password)
+    try:
+        User.objects.create_superuser(
+            email=email,
+            username=email,   # auto-fill username
+            password=password
+        )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"message": "Superuser created successfully"})
