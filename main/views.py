@@ -201,7 +201,6 @@ def create_admin(request):
     try:
         User.objects.create_superuser(
             email=email,
-            username=email,   # auto-fill username
             password=password
         )
     except Exception as e:
