@@ -183,36 +183,3 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
-from django.http import JsonResponse
-from django.contrib.auth import get_user_model
-import random
-
-def create_admin(request):
-    User = get_user_model()
-
-    email = request.GET.get("email")
-    password = request.GET.get("password")
-
-    if not email or not password:
-        return JsonResponse({"error": "Provide email & password"}, status=400)
-
-    if User.objects.filter(email=email).exists():
-        return JsonResponse({"message": "Admin already exists"})
-
-    # Generate a unique random phone number (10 digits)
-    random_phone = f"9{random.randint(100000000, 999999999)}"
-
-    try:
-        user = User.objects.create_superuser(
-            email=email,
-            password=password,
-            phone=random_phone,
-            address="",
-            city="",
-            state="",
-            pincode=""
-        )
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"message": "Superuser created successfully", "phone_used": random_phone})
