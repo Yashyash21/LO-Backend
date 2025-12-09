@@ -14,6 +14,7 @@ from rest_framework import status
 from products.models import Cart
 from .models import Payment
 from .serializers import PaymentSerializer
+from rest_framework.permissions import AllowAny
 
 
 
@@ -57,6 +58,7 @@ def merge_guest_cart(user, cart_code):
 # ============================================================
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def category_list(request, path=None):
     categories = Category.objects.none()
     if not path:
@@ -76,6 +78,7 @@ def category_list(request, path=None):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def products_by_category(request, path):
     slugs = path.strip("/").split("/")
     parent = None
@@ -99,6 +102,7 @@ def products_by_category(request, path):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     serializer = ProductSerializer(product, context={'request': request})
@@ -106,6 +110,7 @@ def product_detail(request, slug):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def search_products(request):
     queryset = Product.objects.all()
 
@@ -147,6 +152,7 @@ def search_products(request):
 # ============================================================
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def add_item(request):
     """
     Add a product to cart.
@@ -203,6 +209,7 @@ def add_item(request):
 # 🧾 Check if product is in cart
 # ------------------------
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def product_in_cart(request):
     cart_code = request.query_params.get("cart_code")
     product_id = request.query_params.get("product_id")
@@ -221,6 +228,7 @@ def product_in_cart(request):
 # 📊 Cart Summary
 # ------------------------
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_cart_stat(request):
     cart_code = request.query_params.get("cart_code")
     cart = get_object_or_404(Cart, cart_code=cart_code)
@@ -232,6 +240,7 @@ def get_cart_stat(request):
 # 🛍️ Get Full Cart
 # ------------------------
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_cart(request):
     """
     Always returns a valid cart (auto-creates one if missing).
@@ -269,6 +278,7 @@ def get_cart(request):
 # ✏️ Update Quantity
 # ------------------------
 @api_view(['PATCH'])
+@permission_classes([AllowAny])
 def update_quantity(request):
     try:
         item_id = request.data.get("item_id")
@@ -292,6 +302,7 @@ def update_quantity(request):
 # ❌ Delete Cart Item
 # ------------------------
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def delete_cartitem(request):
     item_id = request.data.get("item_id")
     cartitem = get_object_or_404(CartItem, id=item_id)
@@ -338,6 +349,7 @@ def remove_from_wishlist(request, product_id):
 # ============================================================
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def trending_products(request):
     items = Product.objects.filter(is_trending=True)
     serializer = ProductSerializer(items, many=True, context={'request': request})
@@ -345,6 +357,7 @@ def trending_products(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def top_deals_products(request):
     items = Product.objects.filter(is_top_deal=True)
     serializer = ProductSerializer(items, many=True, context={'request': request})
