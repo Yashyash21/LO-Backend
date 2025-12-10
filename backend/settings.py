@@ -161,6 +161,20 @@ REST_FRAMEWORK = {
     ),
 }
 
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),       # access token valid for 1 day
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),     # refresh token valid for 30 days
+
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,
+
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
 # --------------------------------------------
 # CORS SETTINGS (✅ Fixed for frontend)
 # --------------------------------------------
