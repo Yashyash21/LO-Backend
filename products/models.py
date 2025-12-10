@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils.crypto import get_random_string
 from django.db import models
 
+from django.db.models import JSONField
 
 
 User = get_user_model()
@@ -39,7 +40,7 @@ class Product(models.Model):
     original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     brand = models.CharField(max_length=100, blank=True, null=True)
-    stock = models.IntegerField(default=0)
+    stock = JSONField(default=list, blank=True)   # stores size + quantity list
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
 
@@ -49,25 +50,9 @@ class Product(models.Model):
     rating = models.FloatField(default=4.0, blank=True)
 
     # ⭐ ADD HERE — SIZE TYPE
-    SIZE_CATEGORY_CHOICES = [
-        ("none", "No sizes"),
-        ("clothing", "Clothing"),
-        ("shoes", "Shoes"),
-    ]
-
-    size_category = models.CharField(
-        max_length=20,
-        choices=SIZE_CATEGORY_CHOICES,
-        default="none"
-    )
-
-    # ⭐ ADD HERE — AVAILABLE SIZES
-    available_sizes = models.CharField(
-        max_length=120,
-        blank=True,
-        help_text="Comma separated e.g. S,M,L or 6,7,8"
-    )
-
+   
+   
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
