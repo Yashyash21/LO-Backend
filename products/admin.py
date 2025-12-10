@@ -1,6 +1,8 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from .models import Product, Category, Cart, CartItem, Wishlist,ProductImage
+from import_export import resources, fields
+from import_export.widgets import JSONWidget
 
 
 # ================================
@@ -21,12 +23,37 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
     max_num = 3 
 
+
+class ProductResource(resources.ModelResource):
+    stock = fields.Field(
+        column_name="stock",
+        attribute="stock",
+        widget=JSONWidget()
+    )
+
+    class Meta:
+        model = Product
+        fields = (
+            "id",
+            "name",
+            "price",
+            "original_price",
+            "brand",
+            "stock",
+            "category",
+            "is_trending",
+            "is_top_deal",
+            "rating",
+        )
+
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
+    resource_class = ProductResource   # <-- Add this line
+
     list_display = (
-    'name', 'category', 'price', 'original_price', 'stock',
-    'is_trending', 'is_top_deal', 'rating', 'size_category', 'available_sizes'
-     )
+        'name', 'category', 'price', 'original_price', 'stock',
+        'is_trending', 'is_top_deal', 'rating'
+    )
 
     list_filter = ('category','is_trending', 'is_top_deal','rating')
     search_fields = ('name', 'category__name')

@@ -45,7 +45,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "final_price", "discount_percent",
             "brand", "stock", "image", "category",
             "is_trending", "is_top_deal", "images",
-            "size_category", "available_sizes",
+           
         ]
 
     def get_image(self, obj):
