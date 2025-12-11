@@ -75,62 +75,20 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # --------------------------------------------
 import os
 
-# ------------------------------
-# 🔐 SECURITY
-# ------------------------------
 
-
-# ------------------------------
-# 🗄 DATABASE (Aiven MySQL)
-# ------------------------------
-# ------------------------------
-# DATABASE — AIVEN MYSQL
-# ------------------------------
-from pathlib import Path
-import os
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
-
-DEBUG = False
-
-# Detect Render platform automatically
-IS_RENDER = os.getenv("RENDER") is not None
-
-# ------------------------------
-# DATABASE CONFIG
-# ------------------------------
-if IS_RENDER:
-    print("🚀 Running on Render → Using Aiven MySQL")
-
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.getenv("DB_NAME"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-            "HOST": os.getenv("DB_HOST"),
-            "PORT": os.getenv("DB_PORT"),
-
-            # Aiven SSL certificate path
-            "OPTIONS": {
-                "ssl": {
-                    'sslmode': os.environ.get('DB_SSL', 'require')
-                }
-            }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
+        "OPTIONS": {
+            "sslmode": os.getenv("DB_SSL", "require")
         }
     }
-
-else:
-    print("🛠 Running locally → Using SQLite")
-
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 
 # --------------------------------------------
