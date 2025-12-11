@@ -116,7 +116,7 @@ if IS_RENDER:
             # Aiven SSL certificate path
             "OPTIONS": {
                 "ssl": {
-                    "ca": "/etc/secrets/ca.pem"
+                    'sslmode': os.environ.get('DB_SSL', 'require')
                 }
             }
         }
