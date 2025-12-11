@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
-from .models import Product, Category, Cart, CartItem, Wishlist,ProductImage
+from .models import Product, Category, Cart, CartItem, Wishlist,ProductImage,ProductStock
 from import_export import resources, fields
 
 
@@ -22,20 +22,25 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
     max_num = 3 
 
+class ProductStockInline(admin.TabularInline):
+    model = ProductStock
+    extra = 1
 
 
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
 
     list_display = (
-        'name', 'category', 'price', 'original_price', 'stock',
+        'name', 'category', 'price', 'original_price',
         'is_trending', 'is_top_deal', 'rating'
     )
 
-    list_filter = ('category','is_trending', 'is_top_deal','rating')
+    list_filter = ('category', 'is_trending', 'is_top_deal', 'rating')
     search_fields = ('name', 'category__name')
-    list_editable = ('rating',)    
-    inlines = [ProductImageInline]
+    list_editable = ('rating',)
+
+    inlines = [ProductImageInline, ProductStockInline]
+
 
 
 
