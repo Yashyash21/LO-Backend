@@ -36,6 +36,8 @@ class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     final_price = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
+    stock = serializers.SerializerMethodField()  # 👈 ADD THIS
+
 
     class Meta:
         model = Product
