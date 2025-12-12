@@ -183,3 +183,28 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
+from django.contrib.auth import get_user_model
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+User = get_user_model()
+
+@api_view(["POST"])
+def create_superuser_api(request):
+    username = request.data.get("username")
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    if not username or not email or not password:
+        return Response({"error": "username, email, and password are required"}, status=400)
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "User already exists"}, status=400)
+
+    user = User.objects.create_superuser(
+        username=username,
+        email=email,
+        password=password
+    )
+
+    return Response({"message": "Superuser created successfully!", "user": user.username})
