@@ -193,7 +193,7 @@ from rest_framework.response import Response
 
 User = get_user_model()
 
-@api_view(["POST"])
+@api_view(["POST","GET"])
 @permission_classes([AllowAny])
 @authentication_classes([])
 def auto_create_superuser(request):
@@ -211,4 +211,4 @@ def auto_create_superuser(request):
         password=password
     )
 
-    return Response({"message": "Superuser created", "email": email}, status=201)
+    return Response({"message": "Superuser created", "email": email}, status=201 )
