@@ -193,28 +193,22 @@ from rest_framework.response import Response
 
 User = get_user_model()
 
-@api_view(["GET"])
+@api_view(["POST"])
 @permission_classes([AllowAny])
-@authentication_classes([])  # Disable global auth for this route
+@authentication_classes([])
 def auto_create_superuser(request):
 
     email = "admin@example.com"
-    phone = "9999999999"      # Required by your model
-    password = "Admin123@"    # Hardcoded password
+    phone = "9999999999"
+    password = "Admin123@"
 
-    # If already exists
     if User.objects.filter(email=email).exists():
         return Response({"message": "Superuser already exists"}, status=200)
 
-    # Create superuser
-    user = User.objects.create_superuser(
+    User.objects.create_superuser(
         email=email,
         phone=phone,
         password=password
     )
 
-    return Response({
-        "message": "Superuser created successfully",
-        "email": user.email,
-        "phone": user.phone
-    }, status=201)
+    return Response({"message": "Superuser created", "email": email}, status=201)
