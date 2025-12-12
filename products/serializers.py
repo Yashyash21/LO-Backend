@@ -64,7 +64,16 @@ class ProductSerializer(serializers.ModelSerializer):
             discount = ((obj.original_price - obj.price) / obj.original_price) * 100
             return round(discount)
         return 0
-
+    
+    
+    def get_stock(self, obj):
+        return [
+            {
+                "size": variant.size,
+                "quantity": variant.quantity
+            }
+            for variant in obj.variants.all()
+        ]
 
 # ============================================================
 # CART ITEM SERIALIZER
