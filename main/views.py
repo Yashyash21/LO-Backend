@@ -185,7 +185,7 @@ class UserProfileView(APIView):
     
 
 
-    
+
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
@@ -195,21 +195,26 @@ User = get_user_model()
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-@authentication_classes([])   # Ignore global authentication
+@authentication_classes([])  # Disable global auth for this route
 def auto_create_superuser(request):
-    username = "admin"
+
     email = "admin@example.com"
-    password = "Admin123@"
+    phone = "9999999999"      # Required by your model
+    password = "Admin123@"    # Hardcoded password
 
     # If already exists
-    if User.objects.filter(username=username).exists():
+    if User.objects.filter(email=email).exists():
         return Response({"message": "Superuser already exists"}, status=200)
 
     # Create superuser
-    User.objects.create_superuser(
-        username=username,
+    user = User.objects.create_superuser(
         email=email,
+        phone=phone,
         password=password
     )
 
-    return Response({"message": "Superuser created", "username": username}, status=201)
+    return Response({
+        "message": "Superuser created successfully",
+        "email": user.email,
+        "phone": user.phone
+    }, status=201)
