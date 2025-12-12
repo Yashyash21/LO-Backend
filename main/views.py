@@ -211,4 +211,4 @@ def auto_create_superuser(request):
         password=password
     )
 
-    return Response({"message": "Superuser created", "email": email}, status=201)
+    return Response({"message": "Superuser created", "email": email}, status=201 )
