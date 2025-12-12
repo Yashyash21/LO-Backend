@@ -183,9 +183,11 @@ class UserProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
+
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
 
 User = get_user_model()
 
@@ -207,4 +209,7 @@ def create_superuser_api(request):
         password=password
     )
 
-    return Response({"message": "Superuser created successfully!", "user": user.username})
+    return Response({
+        "message": "Superuser created successfully!",
+        "user": user.username
+    }, status=201)
