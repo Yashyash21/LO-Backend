@@ -1,40 +1,58 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
-
-
+from .models import CustomUser,UserAddress
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    # 🛑 REMOVE default username field from UserAdmin
+    model = CustomUser
+
+    # Remove username completely
     exclude = ("username",)
 
-    # 🟢 Use email instead of username
     ordering = ("email",)
-    list_display = ("email", "phone", "city", "state", "pincode", "is_staff", "is_active")
-    search_fields = ("email", "phone", "city", "state", "pincode")
-    list_filter = ("city", "state", "is_staff", "is_active")
+    list_display = ("email", "phone", "is_staff", "is_active")
+    search_fields = ("email", "phone")
+    list_filter = ("is_staff", "is_active")
 
-    # 🟢 Fields shown when editing a user
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal Info", {"fields": ("phone", "address", "city", "state", "pincode")}),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("Personal Info", {"fields": ("phone",)}),
+        ("Permissions", {
+            "fields": (
+                "is_active",
+                "is_staff",
+                "is_superuser",
+                "groups",
+                "user_permissions",
+            )
+        }),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
 
-    # 🟢 Fields shown when creating a new user
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
             "fields": (
                 "email",
                 "phone",
-                "address",
-                "city",
-                "state",
-                "pincode",
                 "password1",
                 "password2",
             ),
         }),
     )
+
+    USERNAME_FIELD = "email"
+
+
+
+@admin.register(UserAddress)
+class UserAddressAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "city",
+        "state",
+        "pincode",
+        "is_default",
+        "created_at",
+    )
+    list_filter = ("city", "state", "is_default")
+    search_fields = ("user__email", "city", "state", "pincode")
