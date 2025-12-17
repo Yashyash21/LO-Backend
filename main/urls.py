@@ -4,7 +4,7 @@ from .views import (
     register_user,
     EmailLoginView,
    
-    UserProfileView,send_password_reset_otp,verify_otp,reset_password,auto_create_superuser
+    UserProfileView,send_password_reset_otp,verify_otp,reset_password,auto_create_superuser,AddressListCreateView, AddressDetailView
 )
 
 urlpatterns = [
@@ -26,6 +26,8 @@ urlpatterns = [
     path("verify-otp/", verify_otp),
     path("reset-password/", reset_password),
     path("create-admin/", auto_create_superuser),
+    path("addresses/", AddressListCreateView.as_view()),
+    path("addresses/<int:pk>/", AddressDetailView.as_view()),
 
 
 

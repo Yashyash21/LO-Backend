@@ -1,13 +1,19 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import status
+from rest_framework import status,generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
 import random
+from .models import UserAddress
+
+
+
+
+
 
 from accounts.models import CustomUser, PasswordResetOTP
 from .serializers import (
@@ -16,7 +22,7 @@ from .serializers import (
     UserProfileSerializer,
     PasswordResetOTPRequestSerializer,
     OTPVerifySerializer,
-    ResetPasswordSerializer
+    ResetPasswordSerializer,UserAddressSerializer
 )
 from products.views import merge_guest_cart
 from django.contrib.auth import get_user_model
@@ -174,14 +180,8 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(UserProfileSerializer(request.user).data)
-
-    def put(self, request):
-        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
     
 
 
@@ -212,3 +212,23 @@ def auto_create_superuser(request):
     )
 
     return Response({"message": "Superuser created", "email": email}, status=201 )
+
+
+
+class AddressListCreateView(generics.ListCreateAPIView):
+    serializer_class = UserAddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserAddress.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserAddressSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserAddress.objects.filter(user=self.request.user)
