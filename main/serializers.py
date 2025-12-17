@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import CustomUser
+from accounts.models import CustomUser,UserAddress
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -37,6 +37,31 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class UserAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAddress
+        fields = [
+            "id",
+            "full_address",
+            "city",
+            "state",
+            "pincode",
+            "is_default"
+        ]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    addresses = UserAddressSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "phone",
+            "addresses"
+        ]
+        read_only_fields = ["email"]
 # =========================================
 # 🔹 EMAIL-BASED JWT LOGIN
 # =========================================
