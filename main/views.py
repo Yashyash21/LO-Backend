@@ -8,14 +8,13 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
 import random
-from .models import UserAddress
 
 
 
 
 
 
-from accounts.models import CustomUser, PasswordResetOTP
+from accounts.models import CustomUser, PasswordResetOTP,UserAddress
 from .serializers import (
     UserRegistrationSerializer,
     EmailTokenObtainPairSerializer,
