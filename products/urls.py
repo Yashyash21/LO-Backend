@@ -39,7 +39,7 @@ urlpatterns = [
     # =====================================================
     re_path(r"^categories(?:/(?P<path>.+))?/$", category_list, name="category-list"),
     re_path(r"^products/(?P<path>.+)/$", products_by_category, name="products-by-category"),
-    path("product/<slug:slug>/", product_detail, name="product-detail"),
+    path("product/<int:id>/<slug:slug>/", product_detail, name="product-detail"),
     path("search/", search_products, name="search-products"),
 
     # =====================================================

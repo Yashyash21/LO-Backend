@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser,UserAddress
+from .models import CustomUser,UserAddress,ServiceArea
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -53,6 +53,11 @@ class UserAddressAdmin(admin.ModelAdmin):
         "pincode",
         "is_default",
         "created_at",
+        "phone"
     )
     list_filter = ("city", "state", "is_default")
-    search_fields = ("user__email", "city", "state", "pincode")
+    search_fields = ("user__email", "city", "state", "pincode","phone")
+
+
+
+admin.site.register(ServiceArea)

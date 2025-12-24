@@ -45,7 +45,7 @@ class UserAddress(models.Model):
         on_delete=models.CASCADE,
         related_name="addresses"
     )
-
+    phone = models.CharField(max_length=10, blank=True, null=True)
     full_address = models.TextField()
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
@@ -64,9 +64,9 @@ class UserAddress(models.Model):
             ).exclude(id=self.id).update(is_default=False)
 
         super().save(*args, **kwargs)
-
     def __str__(self):
-        return f"{self.user.email} - {self.city}"
+        return f"{self.full_address}, {self.city}, {self.state} - {self.pincode}"
+
 
 
 
@@ -82,3 +82,14 @@ class PasswordResetOTP(models.Model):
 
     def __str__(self):
         return f"{self.email} - {self.otp}"
+
+
+
+
+class ServiceArea(models.Model):
+    city = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=10, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.city} - {self.pincode}"
