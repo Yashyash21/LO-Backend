@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Category, Product, Cart, CartItem, Wishlist, ProductImage, Order, OrderItem, Payment
-
+from main.serializers import UserAddressSerializer
 
 # ============================================================
 # CATEGORY SERIALIZER
@@ -133,27 +133,73 @@ class WishlistSerializer(serializers.ModelSerializer):
 
 # ============================================================
 # ORDER ITEM SERIALIZER
-# ============================================================
+from rest_framework import serializers
+from .models import Order, OrderItem
+from products.serializers import ProductSerializer
+
+
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = serializers.SerializerMethodField()
+    product = ProductSerializer()
 
     class Meta:
         model = OrderItem
-        fields = ["id", "product", "quantity"]
+        fields = [
+            "id",
+            "product",
+            "size",
+            "quantity",
+            "price",
+        ]
 
-    def get_product(self, obj):
-        return ProductSerializer(obj.product, context=self.context).data
 
-
-# ============================================================
-# ORDER SERIALIZER
-# ============================================================
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
+    address = UserAddressSerializer()
 
     class Meta:
         model = Order
-        fields = ["id", "order_id", "total_amount", "status", "created_at", "items"]
+        fields = [
+            "id",
+            "order_id",
+            "status",
+            "total_amount",
+            "created_at",
+
+            # ✅ NEW IMPORTANT FIELDS
+            "shipped_at",
+            "out_for_delivery_at",
+            "delivered_at",
+            "estimated_delivery_date",
+
+            "items",
+            "address",
+        ]
+
+
+
+# # ============================================================
+# # ORDER SERIALIZER
+# # ============================================================
+# class OrderSerializer(serializers.ModelSerializer):
+#     address = UserAddressSerializer()
+#     items = OrderItemSerializer(many=True)
+
+#     class Meta:
+#         model = Order
+#         fields = [
+#             "id",
+#             "order_id",
+#             "total_amount",
+#             "status",
+#             "created_at",
+#             "shipped_at",
+#             "out_for_delivery_at",
+#             "delivered_at",
+#             "estimated_delivery_date",
+#             "items",
+#             "address",
+#         ]
+        
 
 
 # ============================================================

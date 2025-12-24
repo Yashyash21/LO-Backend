@@ -7,33 +7,68 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 # 🔹 USER REGISTRATION
 # =========================================
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only=True, min_length=6)
-    password2 = serializers.CharField(write_only=True, min_length=6)
+    password1 = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    # OPTIONAL address fields
+    full_address = serializers.CharField(write_only=True, required=False)
+    city = serializers.CharField(write_only=True, required=False)
+    state = serializers.CharField(write_only=True, required=False)
+    pincode = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = CustomUser
         fields = [
-            "email", "phone", "address", "city", "state", "pincode",
-            "password1", "password2"
+            "email",
+            "phone",
+            "password1",
+            "password2",
+            "full_address",
+            "city",
+            "state",
+            "pincode",
         ]
 
     def validate(self, data):
         if data["password1"] != data["password2"]:
-            raise serializers.ValidationError("Passwords do not match.")
+            raise serializers.ValidationError("Passwords do not match")
+
+        address_fields = ["full_address", "city", "state", "pincode"]
+        provided = [f for f in address_fields if f in data]
+
+        # If any address field is provided, all must be provided
+        if provided and len(provided) != len(address_fields):
+            raise serializers.ValidationError(
+                "Please provide complete address details"
+            )
+
         return data
 
     def create(self, validated_data):
+        password = validated_data.pop("password1")
         validated_data.pop("password2")
-        user = CustomUser(
+
+        # extract address (if exists)
+        address_data = {}
+        for field in ["full_address", "city", "state", "pincode"]:
+            if field in validated_data:
+                address_data[field] = validated_data.pop(field)
+
+        user = CustomUser.objects.create(
             email=validated_data["email"],
-            phone=validated_data["phone"],
-            address=validated_data["address"],
-            city=validated_data["city"],
-            state=validated_data["state"],
-            pincode=validated_data["pincode"],
+            phone=validated_data["phone"]
         )
-        user.set_password(validated_data["password1"])
+        user.set_password(password)
         user.save()
+
+        # create default address ONLY if provided
+        if address_data:
+            UserAddress.objects.create(
+                user=user,
+                is_default=True,
+                **address_data
+            )
+
         return user
 
 
@@ -46,8 +81,28 @@ class UserAddressSerializer(serializers.ModelSerializer):
             "city",
             "state",
             "pincode",
-            "is_default"
+            "phone",
+            "is_default",
         ]
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+
+        if validated_data.get("is_default"):
+            UserAddress.objects.filter(
+                user=user, is_default=True
+            ).update(is_default=False)
+
+        return UserAddress.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        if validated_data.get("is_default"):
+            UserAddress.objects.filter(
+                user=instance.user, is_default=True
+            ).exclude(id=instance.id).update(is_default=False)
+
+        return super().update(instance, validated_data)
+
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -96,8 +151,7 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token["email"] = user.email
         token["phone"] = user.phone
-        token["city"] = user.city
-        token["state"] = user.state
+      
         return token
 
 
@@ -133,7 +187,9 @@ class ResetPasswordSerializer(serializers.Serializer):
 # 🔹 USER PROFILE
 # =========================================
 class UserProfileSerializer(serializers.ModelSerializer):
+    addresses = UserAddressSerializer(many=True, read_only=True)
+
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "phone", "address", "city", "state", "pincode"]
+        fields = ["id", "email", "phone", "addresses"]
         read_only_fields = ["email"]

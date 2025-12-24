@@ -2,6 +2,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 from .models import Product, Category, Cart, CartItem, Wishlist,ProductImage,ProductStock
 from import_export import resources, fields
+from django.utils import timezone
 
 
 # ================================
@@ -13,7 +14,7 @@ class CategoryAdmin(ImportExportModelAdmin):
     search_fields = ('name',)
 
 
-# ================================
+# ===============================
 # 🛍 PRODUCT ADMIN
 # ================================
 
@@ -102,5 +103,39 @@ class PaymentAdmin(ImportExportModelAdmin):
 from django.contrib import admin
 from .models import Order, OrderItem
 
-admin.site.register(Order)
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    can_delete = False
+    readonly_fields = ("product", "quantity", "order")
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+from django.contrib import admin
+from .models import Order, OrderItem
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    
+    list_display = (
+        "order_id",
+        "user",
+        "status",
+        "created_at",
+        "address"
+    )
+
+    list_filter = ("status", "created_at")
+    search_fields = ("order_id", "user__email")
+    readonly_fields = (
+        "created_at",
+        "shipped_at",
+        "out_for_delivery_at",
+        "delivered_at",
+        "address"
+    )
+
+
 admin.site.register(OrderItem)

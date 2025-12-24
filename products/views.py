@@ -12,10 +12,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from products.models import Cart
-from .models import Payment
+from .models import Payment, OrderItem
 from .serializers import PaymentSerializer
 from rest_framework.permissions import AllowAny
-
+from accounts.models import ServiceArea
 
 
 from .models import (
@@ -100,13 +100,21 @@ def products_by_category(request, path):
     serializer = ProductSerializer(products, many=True, context={'request': request})
     return Response(serializer.data)
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def product_detail(request, slug):
-    product = get_object_or_404(Product, slug=slug)
+def product_detail(request, id, slug):
+    product = get_object_or_404(Product, id=id)
+
+    # Optional: redirect if slug mismatch
+    if product.slug != slug:
+        return Response(
+            {"redirect": f"/product/{product.id}/{product.slug}/"},
+            status=301
+        )
+
     serializer = ProductSerializer(product, context={'request': request})
     return Response(serializer.data)
+
 
 
 @api_view(['GET'])
@@ -378,15 +386,56 @@ def create_order(request):
         if not cart or not cart.items.exists():
             return Response({"error": "Your cart is empty."}, status=400)
 
+        # =========================
+        # ✅ STEP-4 STARTS HERE
+        # =========================
+        address_id = request.data.get("address_id")
+
+        if not address_id:
+            return Response(
+                {"error": "Delivery address is required"},
+                status=400
+            )
+
+        try:
+            address = UserAddress.objects.get(
+                id=address_id,
+                user=user
+            )
+        except UserAddress.DoesNotExist:
+            return Response(
+                {"error": "Invalid delivery address"},
+                status=400
+            )
+
+        service_available = ServiceArea.objects.filter(
+            pincode=address.pincode,
+            is_active=True
+        ).exists()
+
+        if not service_available:
+            return Response(
+                {"error": "Service not available in your area"},
+                status=400
+            )
+        # =========================
+        # ✅ STEP-4 ENDS HERE
+        # =========================
+
         amount = int(cart.total_price * 100)
         currency = "INR"
 
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        client = razorpay.Client(auth=(
+            settings.RAZORPAY_KEY_ID,
+            settings.RAZORPAY_KEY_SECRET
+        ))
 
-        # 1️⃣ Create Razorpay Order
-        razorpay_order = client.order.create(dict(amount=amount, currency=currency, payment_capture="1"))
+        razorpay_order = client.order.create({
+            "amount": amount,
+            "currency": currency,
+            "payment_capture": 1
+        })
 
-        # 2️⃣ IMPORTANT FIX — Avoid Duplicate Payment
         payment, created = Payment.objects.get_or_create(
             user=user,
             cart=cart,
@@ -398,15 +447,12 @@ def create_order(request):
             }
         )
 
-        # If payment already exists → update order_id & amount
         if not created:
             payment.amount = cart.total_price
             payment.currency = currency
             payment.razorpay_order_id = razorpay_order["id"]
             payment.status = "created"
             payment.save()
-
-        serializer = PaymentSerializer(payment)
 
         return Response({
             "key": settings.RAZORPAY_KEY_ID,
@@ -415,37 +461,36 @@ def create_order(request):
             "order_id": razorpay_order["id"],
             "user_email": user.email,
             "user_phone": user.phone,
-            "payment": serializer.data
-        }, status=status.HTTP_201_CREATED)
+        }, status=201)
 
     except Exception as e:
+        print("RAZORPAY ERROR:", str(e))
         return Response({"error": str(e)}, status=500)
 
+
+from accounts.models import UserAddress
+from django.shortcuts import get_object_or_404
+import uuid
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def verify_payment(request):
     try:
         data = request.data
+        address_id = data.get("address_id")   # ✅ STEP 1
 
         client = razorpay.Client(
             auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
         )
 
-        # -------------------------------
-        # 1️⃣ VERIFY RAZORPAY SIGNATURE
-        # -------------------------------
-        params_dict = {
+        # 1️⃣ Verify signature
+        client.utility.verify_payment_signature({
             "razorpay_order_id": data["razorpay_order_id"],
             "razorpay_payment_id": data["razorpay_payment_id"],
             "razorpay_signature": data["razorpay_signature"],
-        }
+        })
 
-        client.utility.verify_payment_signature(params_dict)
-
-        # -------------------------------
-        # 2️⃣ FETCH PAYMENT OBJECT
-        # -------------------------------
+        # 2️⃣ Fetch payment
         payment = Payment.objects.filter(
             razorpay_order_id=data["razorpay_order_id"]
         ).first()
@@ -453,38 +498,44 @@ def verify_payment(request):
         if not payment:
             return Response({"error": "Payment not found"}, status=404)
 
-        # Update payment info
+        cart = payment.cart
+
+        # 🔐 Security check
+        if cart.user != request.user:
+            return Response({"error": "Unauthorized"}, status=403)
+
+        # ✅ Get selected address (STEP 5 logic)
+        address = get_object_or_404(
+            UserAddress,
+            id=address_id,
+            user=request.user
+        )
+
+        # Update payment
         payment.razorpay_payment_id = data["razorpay_payment_id"]
         payment.razorpay_signature = data["razorpay_signature"]
         payment.status = "success"
         payment.save()
 
-        # -------------------------------
-        # 3️⃣ CREATE ORDER
-        # -------------------------------
-        from products.models import Order, OrderItem   # ✅ FIXED IMPORT
-        import uuid
-
-        cart = payment.cart
-
+        # 3️⃣ Create order WITH address
         order = Order.objects.create(
             user=request.user,
             order_id=str(uuid.uuid4()),
             total_amount=cart.total_price,
-            status="Pending"
+            status="PLACED",
+            address=address   # ✅ DELIVERY ADDRESS SAVED
         )
 
-        # Create each item
         for item in cart.items.all():
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
-                quantity=item.quantity
+                size=item.size,
+                quantity=item.quantity,
+                price=item.product.price
             )
 
-        # -------------------------------
-        # 4️⃣ CLEAR CART
-        # -------------------------------
+        # 4️⃣ Clear cart
         cart.items.all().delete()
         cart.paid = True
         cart.save()

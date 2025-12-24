@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-dev-key")
 
-DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
+DEBUG = True
 
 # -------------------------------------------------
 # ALLOWED HOSTS
@@ -198,11 +198,9 @@ else:
 CORS_ALLOW_CREDENTIALS = True
 
 
-# -------------------------------------------------
-# RAZORPAY
-# -------------------------------------------------
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+RAZORPAY_KEY_ID = "rzp_test_Rep4R92qy2KX4H"      
+RAZORPAY_KEY_SECRET = "mbr1dDYYKILEbyo6j8NQijFC"
+
 
 # -------------------------------------------------
 # LOGGING

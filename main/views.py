@@ -14,7 +14,7 @@ import random
 
 
 
-from accounts.models import CustomUser, PasswordResetOTP,UserAddress
+from accounts.models import CustomUser, PasswordResetOTP,UserAddress,ServiceArea
 from .serializers import (
     UserRegistrationSerializer,
     EmailTokenObtainPairSerializer,
@@ -222,7 +222,7 @@ class AddressListCreateView(generics.ListCreateAPIView):
         return UserAddress.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save()
 
 
 class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -231,3 +231,26 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return UserAddress.objects.filter(user=self.request.user)
+    
+    
+    
+    
+
+@api_view(["POST"])
+def check_service_area(request):
+    pincode = request.data.get("pincode")
+
+    if not pincode:
+        return Response(
+            {"service_available": False, "error": "Pincode required"},
+            status=400
+        )
+
+    available = ServiceArea.objects.filter(
+        pincode=pincode,
+        is_active=True
+    ).exists()
+
+    return Response({
+        "service_available": available
+    })
